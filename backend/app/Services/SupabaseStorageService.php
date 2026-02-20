@@ -12,6 +12,7 @@ class SupabaseStorageService
     protected string $serviceRoleKey;
     protected string $bucket;
 
+
     public function __construct()
     {
         $this->supabaseUrl      = rtrim(config('services.supabase.url'), '/');
@@ -19,9 +20,7 @@ class SupabaseStorageService
         $this->bucket           = config('services.supabase.storage_bucket', 'journals');
     }
 
-    /**
-     * Upload image to Supabase Storage
-     */
+
     public function uploadImage(UploadedFile $file, string $folder = 'journals'): array
     {
         $fileName  = $folder . '/' . Str::uuid() . '.' . $file->getClientOriginalExtension();
