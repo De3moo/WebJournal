@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import journalService from '../../services/journalService';
+import '../../syles/form.css';
 
 function JournalForm({ onSuccess, existingJournal = null }) {
     const [formData, setFormData] = useState({
@@ -13,25 +14,15 @@ function JournalForm({ onSuccess, existingJournal = null }) {
     const [imagePreview, setImagePreview] = useState(existingJournal?.image_url || null);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData({
-                ...formData,
-                image: file,
-            });
-
-            // Create preview
+            setFormData({ ...formData, image: file });
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
+            reader.onloadend = () => setImagePreview(reader.result);
             reader.readAsDataURL(file);
         }
     };
@@ -40,7 +31,6 @@ function JournalForm({ onSuccess, existingJournal = null }) {
         e.preventDefault();
         setErrors({});
         setLoading(true);
-
         try {
             let response;
             if (existingJournal) {
@@ -51,7 +41,6 @@ function JournalForm({ onSuccess, existingJournal = null }) {
             console.log('Journal saved:', response);
             onSuccess();
 
-            // Reset form if creating new
             if (!existingJournal) {
                 setFormData({
                     title: '',
@@ -69,91 +58,72 @@ function JournalForm({ onSuccess, existingJournal = null }) {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #ccc' }}>
-            <h2>{existingJournal ? 'Edit Journal' : 'Create New Journal'}</h2>
+        <div className="form-page">
+            <div className="form-card form-card--wide">
+                <h2>{existingJournal ? 'Edit Journal' : 'Create New Journal'}</h2>
 
-            {errors.general && (
-                <div style={{ color: 'red', marginBottom: '10px' }}>
-                    {errors.general}
-                </div>
-            )}
+                {errors.general && <div className="form-alert">{errors.general}</div>}
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Title:</label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                    {errors.title && <span style={{ color: 'red', fontSize: '12px' }}>{errors.title[0]}</span>}
-                </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Title:</label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.title && <span className="field-error">{errors.title[0]}</span>}
+                    </div>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Content:</label>
-                    <textarea
-                        name="content"
-                        value={formData.content}
-                        onChange={handleChange}
-                        required
-                        rows="6"
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                    {errors.content && <span style={{ color: 'red', fontSize: '12px' }}>{errors.content[0]}</span>}
-                </div>
+                    <div className="form-group">
+                        <label>Content:</label>
+                        <textarea
+                            name="content"
+                            value={formData.content}
+                            onChange={handleChange}
+                            required
+                            rows="7"
+                        />
+                        {errors.content && <span className="field-error">{errors.content[0]}</span>}
+                    </div>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Date:</label>
-                    <input
-                        type="date"
-                        name="journal_date"
-                        value={formData.journal_date}
-                        onChange={handleChange}
-                        required
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                    {errors.journal_date && <span style={{ color: 'red', fontSize: '12px' }}>{errors.journal_date[0]}</span>}
-                </div>
+                    <div className="form-group">
+                        <label>Date:</label>
+                        <input
+                            type="date"
+                            name="journal_date"
+                            value={formData.journal_date}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.journal_date && <span className="field-error">{errors.journal_date[0]}</span>}
+                    </div>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px' }}>Image (optional):</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                    />
-                    {errors.image && <span style={{ color: 'red', fontSize: '12px' }}>{errors.image[0]}</span>}
-                </div>
+                    <div className="form-group">
+                        <label>Image (optional):</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+                        {errors.image && <span className="field-error">{errors.image[0]}</span>}
+                    </div>
 
-                {imagePreview && (
-                    <div style={{ marginBottom: '15px' }}>
+                    {imagePreview && (
                         <img
+                            className="image-preview"
                             src={imagePreview}
                             alt="Preview"
-                            style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover' }}
                         />
-                    </div>
-                )}
+                    )}
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    style={{
-                        width: '100%',
-                        padding: '10px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                    }}
-                >
-                    {loading ? 'Saving...' : (existingJournal ? 'Update Journal' : 'Create Journal')}
-                </button>
-            </form>
+                    <button className="btn" type="submit" disabled={loading}>
+                        {loading ? 'Saving...' : (existingJournal ? 'Update Journal' : 'Create Journal')}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
