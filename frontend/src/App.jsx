@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import RegisterForm from './components/auth/RegisterForm';
-import JournalForm from './components/journal/JournalForm';
-import JournalList from './components/journal/JournalList';
 import authService from './services/authService';
-import LoginForm from "./components/LoginForm.jsx";
+import LoginForm from './components/auth/LoginForm.jsx';
+import './App.css';
+import HomePage from "./components/page/HomePage.jsx";
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [showRegister, setShowRegister] = useState(false);
-    const [refreshJournals, setRefreshJournals] = useState(0);
+    const [showRegister, setShowRegister]       = useState(false);
+    const [user, setUser]                       = useState(null);
 
     useEffect(() => {
         setIsAuthenticated(authService.isAuthenticated());
@@ -26,73 +26,75 @@ function App() {
     const handleLogout = async () => {
         try {
             await authService.logout();
-            setIsAuthenticated(false);
         } catch (err) {
             console.error('Logout failed:', err);
+        } finally {
+            setIsAuthenticated(false);
+            setUser(null);
         }
     };
 
-    const handleJournalSuccess = () => {
-        setRefreshJournals(prev => prev + 1);
-    };
-
+    /* ── Not logged in: show login or register ── */
     if (!isAuthenticated) {
         return (
-            <div>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                    <h1>Web Journal System</h1>
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#f0f2f5',
+                padding: '20px',
+            }}>
+                <h1 style={{
+                    fontSize: '1.8rem',
+                    fontWeight: '700',
+                    color: '#222',
+                    marginBottom: '8px',
+                }}>
+                    Web Journal System
+                </h1>
+
+                <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '24px' }}>
+                    {showRegister ? 'Already have an account? ' : "Don't have an account? "}
                     <button
                         onClick={() => setShowRegister(!showRegister)}
                         style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#6c757d',
-                            color: 'white',
+                            background: 'none',
                             border: 'none',
+                            color: '#2c7a4b',
+                            fontWeight: '600',
                             cursor: 'pointer',
+                            fontSize: 'inherit',
+                            textDecoration: 'underline',
+                            padding: 0,
                         }}
                     >
-                        {showRegister ? 'Go to Login' : 'Go to Register'}
+                        {showRegister ? 'Login' : 'Register'}
                     </button>
-                </div>
+                </p>
 
-                {showRegister ? (
-                    <RegisterForm onRegisterSuccess={handleRegisterSuccess} />
-                ) : (
-                    <LoginForm onLoginSuccess={handleLoginSuccess} />
-                )}
+                <div style={{
+                    background: '#fff',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    padding: '36px 32px',
+                    width: '100%',
+                    maxWidth: '420px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                }}>
+                    {showRegister ? (
+                        <RegisterForm onRegisterSuccess={handleRegisterSuccess} />
+                    ) : (
+                        <LoginForm onLoginSuccess={handleLoginSuccess} />
+                    )}
+                </div>
             </div>
         );
     }
 
-    return (
-        <div>
-            <div style={{
-                backgroundColor: '#007bff',
-                color: 'white',
-                padding: '15px 20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-            }}>
-                <h1 style={{ margin: 0 }}>Web Journal System</h1>
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        padding: '8px 15px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Logout
-                </button>
-            </div>
-
-            <JournalForm onSuccess={handleJournalSuccess} />
-            <JournalList key={refreshJournals} />
-        </div>
-    );
+    /* ── Logged in: show HomePage ── */
+    return <HomePage user={user} onLogout={handleLogout} />;
 }
 
 export default App;

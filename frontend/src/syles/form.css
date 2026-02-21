@@ -1,0 +1,164 @@
+/* ── Shared Form Styles ── */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Center the form on the page vertically and horizontally */
+.form-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.form-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Wider variant for JournalForm */
+.form-card--wide {
+    max-width: 560px;
+}
+
+.form-card h2 {
+    margin-bottom: 24px;
+    font-size: 1.4rem;
+    color: #222;
+}
+
+/* Field group */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Inputs, textarea */
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    color: #333;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #2c7a4b;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.5;
+}
+
+/* File input */
+.form-group input[type="file"] {
+    padding: 6px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* Field-level error */
+.field-error {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: #c0392b;
+}
+
+/* General error alert */
+.form-alert {
+    padding: 10px 14px;
+    border-radius: 5px;
+    margin-bottom: 18px;
+    font-size: 0.875rem;
+    background: #fdf0ee;
+    border: 1px solid #f5c6c2;
+    color: #c0392b;
+}
+
+/* Image preview */
+.image-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-bottom: 16px;
+    display: block;
+}
+
+/* ── Shared button (used across all 3 forms) ── */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2c7a4b;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+    font-family: inherit;
+}
+
+.btn:hover:not(:disabled) {
+    background-color: #235f3a;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Footer link (e.g. "Already have an account?") */
+.form-footer {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.form-footer button {
+    background: none;
+    border: none;
+    color: #2c7a4b;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    text-decoration: underline;
+}
