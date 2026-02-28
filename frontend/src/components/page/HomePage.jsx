@@ -3,14 +3,10 @@ import journalService from '../../services/journalService.js';
 import authService from '../../services/authService.js';
 import JournalFormModal, { Modal } from '../journal/JournalFormModal.jsx';
 import DashboardPanel from './DashboardPanel.jsx';
-import '../../syles/HomePage.css';
+import Footer from './Footer.jsx';
+import '../../styles/HomePage.css';
 
-/* ─────────────────────────────────────────
-   HomePage
-   Props:
-     user     – { name, email } (optional)
-     onLogout – () => void
-───────────────────────────────────────── */
+
 function HomePage({ user, onLogout }) {
     const [journals, setJournals]             = useState([]);
     const [loading, setLoading]               = useState(true);
@@ -215,6 +211,9 @@ function HomePage({ user, onLogout }) {
                 </aside>
 
             </div>
+
+            {/* ── Footer ── */}
+            <Footer />
 
             {/* ── Modal ── */}
             {modalMode && (

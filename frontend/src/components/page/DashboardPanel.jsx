@@ -210,7 +210,6 @@ function DashboardPanel({ journals = [], onSelectJournal }) {
                 <StatCard label="This Year"       value={stats.this_year}                accent="#f59e0b" />
                 <StatCard label="Active Streak"   value={`${stats.active_streak}d`}     accent="#ef4444" />
                 <StatCard label="Longest Streak"  value={`${stats.longest_streak}d`}   accent="#10b981" />
-                <StatCard label="With Images"     value={stats.with_images}             accent="#ec4899" />
             </section>
 
             {/* ── Monthly chart ── */}
