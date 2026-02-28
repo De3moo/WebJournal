@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Journal routes
+    Route::get('/dashboard/', [DashboardController::class, 'stats']);
+
+    // Journal route
     Route::get('/journals', [JournalController::class, 'index']);
     Route::post('/journals', [JournalController::class, 'store']);
     Route::get('/journals/{journal}', [JournalController::class, 'show']);
