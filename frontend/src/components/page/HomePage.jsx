@@ -5,8 +5,14 @@ import JournalFormModal, { Modal } from '../journal/JournalFormModal.jsx';
 import DashboardPanel from './DashboardPanel.jsx';
 import Footer from './Footer.jsx';
 import '../../styles/HomePage.css';
+import JournalDetail from "../journal/JournalDetail.jsx";
 
-
+/* ─────────────────────────────────────────
+   HomePage
+   Props:
+     user     – { name, email } (optional)
+     onLogout – () => void
+───────────────────────────────────────── */
 function HomePage({ user, onLogout }) {
     const [journals, setJournals]             = useState([]);
     const [loading, setLoading]               = useState(true);
@@ -82,11 +88,6 @@ function HomePage({ user, onLogout }) {
     const fmtDate = (str) =>
         new Date(str).toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric',
-        });
-
-    const fmtDateLong = (str) =>
-        new Date(str).toLocaleDateString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
         });
 
     return (
@@ -165,40 +166,11 @@ function HomePage({ user, onLogout }) {
                             <p>Click a journal on the left to read it, or create a new one.</p>
                         </div>
                     ) : (
-                        <div className="journal-detail-card">
-                            {selectedJournal.image_url && (
-                                <img
-                                    className="journal-detail-image"
-                                    src={selectedJournal.image_url}
-                                    alt={selectedJournal.title}
-                                />
-                            )}
-
-                            <div className="journal-detail-date">
-                                {fmtDateLong(selectedJournal.journal_date)}
-                            </div>
-
-                            <h2 className="journal-detail-title">{selectedJournal.title}</h2>
-
-                            <hr className="journal-detail-divider" />
-
-                            <p className="journal-detail-content">{selectedJournal.content}</p>
-
-                            <div className="journal-detail-actions">
-                                <button
-                                    className="btn-edit"
-                                    onClick={() => openEditModal(selectedJournal)}
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    className="btn-delete"
-                                    onClick={() => handleDelete(selectedJournal.id)}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
+                        <JournalDetail
+                            journal={selectedJournal}
+                            onEdit={openEditModal}
+                            onDelete={handleDelete}
+                        />
                     )}
                 </main>
 
