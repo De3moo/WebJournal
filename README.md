@@ -2,14 +2,7 @@
 
 A simple journal application where users can create, view, and manage their personal journal entries with image uploads.
 
-## What's Built
 
-✅ User Registration & Login
-✅ Create Journal Entries
-✅ View All Journals
-✅ Delete Journals
-✅ Upload Images (via Cloudinary)
-✅ Date-based Journal Organization
 
 ## Tech Stack
 
@@ -17,7 +10,6 @@ A simple journal application where users can create, view, and manage their pers
 - Laravel 11
 - PostgreSQL (Supabase)
 - Laravel Sanctum (Authentication)
-- Cloudinary (Image Storage)
 
 **Frontend:**
 - React 18 + Vite
@@ -71,17 +63,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=your_password
 ```
 
-### Step 4: Setup Cloudinary
 
-1. Go to [https://cloudinary.com](https://cloudinary.com)
-2. Create account / Login
-3. Get credentials from Dashboard
-4. Update `backend/.env`:
-```env
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
 
 ### Step 5: Run Database Migrations
 ```bash
@@ -119,125 +101,28 @@ npm run dev
 ```
 Frontend runs on: `http://localhost:5173`
 
-### Step 8: Open Application
 
-Go to: **http://localhost:5173**
 
-## How to Use
-
-1. **Register** - Create a new account
-2. **Login** - Sign in with your credentials
-3. **Create Journal** - Fill in title, content, date, and optionally upload an image
-4. **View Journals** - See all your journal entries below the form
-5. **Delete Journal** - Remove journals you no longer want
-6. **Logout** - Sign out when done
-
-## Project Structure
-```
-web-journal-system/
-│
-├── backend/                    # Laravel API
-│   ├── app/
-│   │   ├── Http/Controllers/
-│   │   │   ├── Auth/
-│   │   │   │   └── AuthController.php
-│   │   │   └── Api/
-│   │   │       └── JournalController.php
-│   │   ├── Models/
-│   │   │   ├── User.php
-│   │   │   └── Journal.php
-│   │   └── Services/
-│   │       └── CloudinaryService.php
-│   └── routes/
-│       └── api.php
-│
-└── frontend/                   # React App
-    └── src/
-        ├── components/
-        │   ├── auth/
-        │   │   ├── LoginForm.jsx
-        │   │   └── RegisterForm.jsx
-        │   └── journal/
-        │       ├── JournalForm.jsx
-        │       └── JournalList.jsx
-        └── services/
-            ├── api.js
-            ├── authService.js
-            └── journalService.js
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/register` - Register new user
-- `POST /api/login` - Login user
-- `POST /api/logout` - Logout user
-- `GET /api/me` - Get current user
-
-### Journals
-- `GET /api/journals` - Get all user journals
-- `POST /api/journals` - Create new journal
-- `GET /api/journals/{id}` - Get single journal
-- `PUT /api/journals/{id}` - Update journal
-- `DELETE /api/journals/{id}` - Delete journal
-
-## Common Issues
-
-### Issue: Database Connection Failed
-**Solution:**
-- Check Supabase credentials in `.env`
-- Make sure Supabase project is active (not paused)
-- Verify internet connection
-```bash
-# Test connection
-cd backend
-php artisan migrate:status
-```
-
-### Issue: Image Upload Failed
-**Solution:**
-- Verify Cloudinary credentials in `.env`
-- Check image size (max 5MB)
-- Ensure image format is jpeg, png, jpg, or gif
-
-### Issue: Can't Register/Login
-**Solution:**
-```bash
-# Clear caches
-cd backend
-php artisan config:clear
-php artisan cache:clear
-
-# Restart server
-php artisan serve
-```
-
-### Issue: Frontend Not Loading
-**Solution:**
-```bash
-# Reinstall dependencies
-cd frontend
-rm -rf node_modules
-npm install
-npm run dev
-```
 
 ## Environment Variables
 
 ### Backend (.env)
 ```env
 # Database
+
 DB_CONNECTION=pgsql
-DB_HOST=your_supabase_host
+DB_HOST=
 DB_PORT=5432
 DB_DATABASE=postgres
 DB_USERNAME=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=
+DB_SSLMODE=require
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_STORAGE_BUCKET=
+APP_DEBUG=true
+APP_ENV=local
 
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ### Frontend (.env)
@@ -272,32 +157,13 @@ npm run dev
 npm run build
 ```
 
-## Features to Add (Future)
+## Full Summary Table
 
-- [ ] Edit journal entries
-- [ ] Search journals
-- [ ] Filter by date range
-- [ ] Calendar view
-- [ ] Tags/categories
-- [ ] Export journals
-- [ ] Rich text editor
-
-## Notes
-
-- This is a development setup
-- No password reset functionality yet
-- Images stored in Cloudinary
-- Session-based authentication with Sanctum tokens
-
-## Support
-
-If you encounter issues:
-1. Check console for errors (F12 in browser)
-2. Verify both servers are running
-3. Check `.env` files are configured correctly
-4. Clear browser cache and try again
-
----
-
-**Created:** February 2024
-**Stack:** Laravel 11 + React 18 + Supabase + Cloudinary
+| Requirement | Problem | Solution in Your Code |
+|---|---|---|
+| SQL Injection | Raw SQL manipulation via input | Use Eloquent ORM and PDO prepared statements; avoid concatenating user input into raw queries |
+| XSS | Malicious scripts stored and executed | Server-side sanitization (e.g. `HTMLPurifier` in `JournalController`) + React's default escaping on the frontend |
+| Weak Credential Storage | Plain/weak password hashes | Use `Hash::make()` when storing passwords and ensure secure hashing driver (`Bcrypt`/`Argon2id`) via `config/hashing.php` |
+| File Handling | Malicious files disguised as images | Validate uploads with `mimes:`/`image:` rules and size limits; offload to Cloudinary or Supabase Storage which serve files with safe `Content-Type` headers |
+| Transport Encryption | Plaintext data over HTTP | Force HTTPS (e.g. in `AppServiceProvider`) and set secure cookie flags (`secure`, `same_site`) in `config/session.php`/`config/cookie.php` for production |
+| Session Control / Token Revocation | Tokens persist after logout allowing reuse | Revoke server-side tokens on logout (Sanctum token deletion), clear client `localStorage`, and implement a `401` response interceptor to force re-authentication |
