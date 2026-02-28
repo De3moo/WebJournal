@@ -10,17 +10,72 @@ function App() {
     const [showRegister, setShowRegister]       = useState(false);
     const [user, setUser]                       = useState(null);
 
+    // On mount: restore auth state + user from localStorage
     useEffect(() => {
-        setIsAuthenticated(authService.isAuthenticated());
+        const authenticated = authService.isAuthenticated();
+        setIsAuthenticated(authenticated);
+
+        if (authenticated) {
+            // Try to get the cached user from localStorage first
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                try {
+                    setUser(JSON.parse(stored));
+                } catch {
+                    // malformed JSON — fetch fresh
+                }
+            }
+            // Always fetch fresh user data from /me on load
+            authService.me()
+                .then((res) => {
+                    const freshUser = res.data?.user ?? res.data;
+                    setUser(freshUser);
+                    localStorage.setItem('user', JSON.stringify(freshUser));
+                })
+                .catch(() => {
+                    // /me failed — token likely expired, force logout
+                    setIsAuthenticated(false);
+                    setUser(null);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('isAuthenticated');
+                });
+        }
     }, []);
 
-    const handleLoginSuccess = () => {
+    const handleLoginSuccess = (loggedInUser) => {
         setIsAuthenticated(true);
+        // Accept user object if authService.login() passes it back,
+        // otherwise fall back to fetching from /me
+        if (loggedInUser) {
+            setUser(loggedInUser);
+            localStorage.setItem('user', JSON.stringify(loggedInUser));
+        } else {
+            authService.me()
+                .then((res) => {
+                    const freshUser = res.data?.user ?? res.data;
+                    setUser(freshUser);
+                    localStorage.setItem('user', JSON.stringify(freshUser));
+                })
+                .catch(() => {});
+        }
     };
 
-    const handleRegisterSuccess = () => {
+    const handleRegisterSuccess = (registeredUser) => {
         setIsAuthenticated(true);
         setShowRegister(false);
+        if (registeredUser) {
+            setUser(registeredUser);
+            localStorage.setItem('user', JSON.stringify(registeredUser));
+        } else {
+            authService.me()
+                .then((res) => {
+                    const freshUser = res.data?.user ?? res.data;
+                    setUser(freshUser);
+                    localStorage.setItem('user', JSON.stringify(freshUser));
+                })
+                .catch(() => {});
+        }
     };
 
     const handleLogout = async () => {
@@ -31,6 +86,9 @@ function App() {
         } finally {
             setIsAuthenticated(false);
             setUser(null);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isAuthenticated');
         }
     };
 

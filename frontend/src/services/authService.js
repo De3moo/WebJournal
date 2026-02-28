@@ -19,11 +19,8 @@ const authService = {
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
             localStorage.setItem('isAuthenticated', 'true');
-            console.log('Login response:', response.data);
-
         }
         return response.data;
-
     },
 
     // Logout user
@@ -38,7 +35,7 @@ const authService = {
         localStorage.removeItem('isAuthenticated');
     },
 
-    // Get current user
+    // Get current user from localStorage (no network call)
     getCurrentUser: () => {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
@@ -47,6 +44,12 @@ const authService = {
     // Check if user is logged in
     isAuthenticated: () => {
         return localStorage.getItem('isAuthenticated') === 'true';
+    },
+
+    // Fetch current user from server (requires valid token)
+    me: async () => {
+        const response = await api.get('/me');
+        return response.data;
     },
 };
 
