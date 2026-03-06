@@ -16,23 +16,29 @@ function App() {
         setIsAuthenticated(authenticated);
 
         if (authenticated) {
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                try { setUser(JSON.parse(stored)); } catch { /* malformed */ }
-            }
+            // 1. Immediately restore from localStorage so the user sees the app right away
+            const storedUser = authService.getCurrentUser();
+            if (storedUser) setUser(storedUser);
 
-            authService.me()
+            // 2. Silently refresh user data from the server in the background.
+            //    Only log out if the token is explicitly rejected (401).
+            //    Network errors / timeouts should NOT kick the user out.
+            authService.me(true)   // forceRefresh=true → always hits the network
                 .then((res) => {
-                    const freshUser = res.data?.user ?? res.data;
+                    const freshUser = res.user ?? res;
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 })
-                .catch(() => {
-                    setIsAuthenticated(false);
-                    setUser(null);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('isAuthenticated');
+                .catch((err) => {
+                    // Only clear session on a real 401 (invalid / expired token)
+                    if (err?.response?.status === 401) {
+                        setIsAuthenticated(false);
+                        setUser(null);
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('isAuthenticated');
+                    }
+                    // Any other error (network down, 500, etc.) — stay logged in
                 });
         }
     }, []);
@@ -44,9 +50,9 @@ function App() {
             setUser(loggedInUser);
             localStorage.setItem('user', JSON.stringify(loggedInUser));
         } else {
-            authService.me()
+            authService.me(true)
                 .then((res) => {
-                    const freshUser = res.data?.user ?? res.data;
+                    const freshUser = res.user ?? res;
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 })
@@ -61,9 +67,9 @@ function App() {
             setUser(registeredUser);
             localStorage.setItem('user', JSON.stringify(registeredUser));
         } else {
-            authService.me()
+            authService.me(true)
                 .then((res) => {
-                    const freshUser = res.data?.user ?? res.data;
+                    const freshUser = res.user ?? res;
                     setUser(freshUser);
                     localStorage.setItem('user', JSON.stringify(freshUser));
                 })
