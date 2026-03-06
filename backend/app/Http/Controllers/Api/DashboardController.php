@@ -24,21 +24,20 @@ class DashboardController extends Controller
         $startOfWeek    = $now->copy()->startOfWeek();
 
         // ── Core counts ──────────────────────────────────────────────
-        $total = Journal::where('user_id', $userId)->count();
 
-        $thisMonth = Journal::where('user_id', $userId)
-            ->whereBetween('journal_date', [$startOfMonth, $now])
-            ->count();
+        $counts = Journal::where('user_id', $userId)
+            ->selectRaw("
+        COUNT(*) as total,
+        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_week,
+        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_month,
+        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_year,
+        SUM(CASE WHEN image_url IS NOT NULL THEN 1 ELSE 0 END) as with_images
+    ", [$startOfWeek, $startOfMonth, $startOfYear])
+            ->first();
 
-        $thisYear = Journal::where('user_id', $userId)
-            ->whereBetween('journal_date', [$startOfYear, $now])
-            ->count();
+// Then update the return block:
 
-        $thisWeek = Journal::where('user_id', $userId)
-            ->whereBetween('journal_date', [$startOfWeek, $now])
-            ->count();
 
-        // ── Longest streak (consecutive days) ────────────────────────
         $allDates = Journal::where('user_id', $userId)
             ->orderBy('journal_date')
             ->pluck('journal_date')
@@ -125,19 +124,16 @@ class DashboardController extends Controller
             ->get(['id', 'title', 'journal_date', 'image_url']);
 
         // ── Images uploaded ───────────────────────────────────────────
-        $withImages = Journal::where('user_id', $userId)
-            ->whereNotNull('image_url')
-            ->count();
 
         return response()->json([
             'stats' => [
-                'total'         => $total,
-                'this_week'     => $thisWeek,
-                'this_month'    => $thisMonth,
-                'this_year'     => $thisYear,
+                'total'         => $counts->total,
+                'this_week'     => $counts->this_week,
+                'this_month'    => $counts->this_month,
+                'this_year'     => $counts->this_year,
                 'active_streak' => $activeStreak,
                 'longest_streak'=> $longestStreak,
-                'with_images'   => $withImages,
+                'with_images'   => $counts->with_images,
             ],
             'monthly_breakdown' => $monthlyData,
             'journal_dates'     => $journalDates,

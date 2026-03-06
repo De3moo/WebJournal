@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Journal;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -25,8 +26,9 @@ class JournalController extends Controller
     {
         $journals = $request->user()
             ->journals()
+            ->select(['id', 'title', 'journal_date', 'image_url', 'content'])
             ->orderBy('journal_date', 'desc')
-            ->paginate(10);
+            ->paginate(5);
 
         return response()->json($journals);
     }
@@ -151,5 +153,20 @@ class JournalController extends Controller
         $journal->delete();
 
         return response()->json(['message' => 'Journal deleted successfully']);
+    }
+
+    public function exportPdf(Request $request, Journal $journal)
+    {
+        if ($journal->user_id !== $request->user()->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $journal->load('user'); // loads the author relationship
+
+        $pdf = Pdf::loadView('journals.pdf', ['journal' => $journal]);
+
+        $filename = 'journal-' . $journal->id . '-' . now()->format('Ymd') . '.pdf';
+
+        return $pdf->download($filename);
     }
 }

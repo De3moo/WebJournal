@@ -7,14 +7,10 @@ import Footer from './Footer.jsx';
 import '../../styles/HomePage.css';
 import JournalDetail from "../journal/JournalDetail.jsx";
 
-/* ─────────────────────────────────────────
-   HomePage
-   Props:
-     user     – { name, email } (optional)
-     onLogout – () => void
-───────────────────────────────────────── */
 function HomePage({ user, onLogout }) {
     const [journals, setJournals]             = useState([]);
+    const [pagination, setPagination]         = useState(null); // full Laravel paginator meta
+    const [currentPage, setCurrentPage]       = useState(1);
     const [loading, setLoading]               = useState(true);
     const [error, setError]                   = useState('');
     const [search, setSearch]                 = useState('');
@@ -22,19 +18,49 @@ function HomePage({ user, onLogout }) {
     const [modalMode, setModalMode]           = useState(null); // null | 'create' | 'edit'
     const [editingJournal, setEditingJournal] = useState(null);
 
-    useEffect(() => { fetchJournals(); }, []);
+    useEffect(() => {
+        fetchJournals(currentPage);
+    }, [currentPage]);
 
-    const fetchJournals = async () => {
+    // Fetch all journals once for dashboard (no pagination)
+    useEffect(() => {
+        fetchAllJournals();
+    }, []);
+
+    const fetchJournals = async (page = 1) => {
         try {
             setLoading(true);
             setError('');
-            const response = await journalService.getAll();
+            const response = await journalService.getAll(page);
             setJournals(response.data);
+            // Store pagination meta: current_page, last_page, total, per_page
+            setPagination({
+                current_page: response.current_page,
+                last_page:    response.last_page,
+                total:        response.total,
+                per_page:     response.per_page,
+            });
         } catch {
             setError('Failed to load journals.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchAllJournals = async () => {
+        try {
+            const response = await journalService.getAllUnpaginated();
+            setAllJournals(response);
+        } catch {
+            // silently fail — dashboard just shows 0s
+        }
+    };
+
+    const handlePageChange = (page) => {
+        if (page < 1 || (pagination && page > pagination.last_page)) return;
+        setCurrentPage(page);
+        // clear selection when changing pages
+        setSelectedId(null);
     };
 
     const handleDelete = async (id) => {
@@ -84,6 +110,23 @@ function HomePage({ user, onLogout }) {
     );
 
     const selectedJournal = journals.find((j) => j.id === selectedId) ?? null;
+
+
+    const buildPageNumbers = () => {
+        if (!pagination) return [];
+        const { current_page, last_page } = pagination;
+        const pages = [];
+        const delta = 2;
+        const start = Math.max(1, current_page - delta);
+        const end   = Math.min(last_page, current_page + delta);
+        if (start > 1) pages.push(1);
+        if (start > 2) pages.push('...');
+        for (let i = start; i <= end; i++) pages.push(i);
+        if (end < last_page - 1) pages.push('...');
+        if (end < last_page) pages.push(last_page);
+        return pages;
+    };
+
 
     const fmtDate = (str) =>
         new Date(str).toLocaleDateString('en-US', {
@@ -156,6 +199,37 @@ function HomePage({ user, onLogout }) {
                             </button>
                         ))}
                     </div>
+                    {pagination && pagination.last_page > 1 && (
+                        <div className="journal-pagination">
+                            <button
+                                className="page-btn page-btn-arrow"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                ‹
+                            </button>
+
+                            {buildPageNumbers().map((p, i) =>
+                                p === '...'
+                                    ? <span key={`ellipsis-${i}`} className="page-ellipsis">…</span>
+                                    : <button
+                                        key={p}
+                                        className={`page-btn${currentPage === p ? ' active' : ''}`}
+                                        onClick={() => handlePageChange(p)}
+                                    >
+                                        {p}
+                                    </button>
+                            )}
+
+                            <button
+                                className="page-btn page-btn-arrow"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === pagination.last_page}
+                            >
+                                ›
+                            </button>
+                        </div>
+                    )}
                 </aside>
 
                 {/* COL 2 — Journal content */}

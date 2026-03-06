@@ -11,9 +11,7 @@ function Footer() {
                 <div className="footer-columns">
                     <div className="footer-col">
                         <h4>About</h4>
-                        <p>
-                            Web Journal is a secure personal journaling app. Write daily entries, attach images, and track your thoughts over time — all stored safely in the cloud.
-                        </p>
+                        <p>Web Journal is a secure personal journaling app. Write daily entries, attach images, and track your thoughts over time — all stored safely in the cloud.</p>
                     </div>
 
 

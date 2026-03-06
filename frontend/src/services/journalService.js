@@ -25,9 +25,7 @@ const journalService = {
         }
 
         const response = await api.post('/journals', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
         return response.data;
     },
@@ -36,7 +34,8 @@ const journalService = {
     update: async (id, journalData) => {
         const formData = new FormData();
         if (journalData.title) formData.append('title', journalData.title);
-        if (journalData.content) formData.append('content', journalData.content);
+        if (journalData.content !== undefined && journalData.content !== null)
+            formData.append('content', journalData.content);
         if (journalData.journal_date) formData.append('journal_date', journalData.journal_date);
 
         if (journalData.image) {
@@ -46,7 +45,7 @@ const journalService = {
         const response = await api.post(`/journals/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
-                'X-HTTP-Method-Override': 'PUT'
+                'X-HTTP-Method-Override': 'PUT',
             },
         });
         return response.data;
@@ -56,6 +55,22 @@ const journalService = {
     delete: async (id) => {
         const response = await api.delete(`/journals/${id}`);
         return response.data;
+    },
+
+    // Export journal as PDF
+    exportPdf: async (id) => {
+        const response = await api.get(`/journals/${id}/export-pdf`, {
+            responseType: 'blob',
+        });
+
+        const url     = window.URL.createObjectURL(new Blob([response.data]));
+        const link    = document.createElement('a');
+        link.href     = url;
+        link.download = `journal-${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
     },
 };
 

@@ -212,6 +212,11 @@ function DashboardPanel({ journals = [], onSelectJournal }) {
                 <StatCard label="Longest Streak"  value={`${stats.longest_streak}d`}   accent="#10b981" />
             </section>
 
+            <section className="db-section">
+                <h3 className="db-section-title">Journal Calendar</h3>
+                <MiniCalendar journalDates={journalDates} />
+            </section>
+
             {/* ── Monthly chart ── */}
             <section className="db-section">
                 <h3 className="db-section-title">Entries This Year</h3>
@@ -219,10 +224,7 @@ function DashboardPanel({ journals = [], onSelectJournal }) {
             </section>
 
             {/* ── Calendar ── */}
-            <section className="db-section">
-                <h3 className="db-section-title">Journal Calendar</h3>
-                <MiniCalendar journalDates={journalDates} />
-            </section>
+
 
             {/* ── Recent journals ── */}
             <section className="db-section">
