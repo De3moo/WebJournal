@@ -12,32 +12,36 @@ class DashboardController extends Controller
 {
     /**
      * Return aggregated journal statistics for the authenticated user.
+     *
+     * Access control:
+     *  - auth:sanctum middleware guarantees only authenticated users reach here.
+     *  - All queries are scoped to $userId — no cross-user data leakage possible.
+     *
+     * No additional input is accepted from the client; all data is derived
+     * from the authenticated user's own records.
      */
     public function stats(Request $request): JsonResponse
     {
         $user   = $request->user();
         $userId = $user->id;
 
-        $now            = Carbon::now();
-        $startOfMonth   = $now->copy()->startOfMonth();
-        $startOfYear    = $now->copy()->startOfYear();
-        $startOfWeek    = $now->copy()->startOfWeek();
+        $now          = Carbon::now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $startOfYear  = $now->copy()->startOfYear();
+        $startOfWeek  = $now->copy()->startOfWeek();
 
-        // ── Core counts ──────────────────────────────────────────────
-
+        // ── Core counts (single query) ────────────────────────────────────
         $counts = Journal::where('user_id', $userId)
             ->selectRaw("
-        COUNT(*) as total,
-        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_week,
-        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_month,
-        SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_year,
-        SUM(CASE WHEN image_url IS NOT NULL THEN 1 ELSE 0 END) as with_images
-    ", [$startOfWeek, $startOfMonth, $startOfYear])
+                COUNT(*) as total,
+                SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_week,
+                SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_month,
+                SUM(CASE WHEN journal_date >= ? THEN 1 ELSE 0 END) as this_year,
+                SUM(CASE WHEN image_url IS NOT NULL THEN 1 ELSE 0 END) as with_images
+            ", [$startOfWeek, $startOfMonth, $startOfYear])
             ->first();
 
-// Then update the return block:
-
-
+        // ── Streak calculation ────────────────────────────────────────────
         $allDates = Journal::where('user_id', $userId)
             ->orderBy('journal_date')
             ->pluck('journal_date')
@@ -48,7 +52,6 @@ class DashboardController extends Controller
 
         $longestStreak = 0;
         $currentStreak = 0;
-        $streakEnd     = null;
 
         for ($i = 0; $i < count($allDates); $i++) {
             if ($i === 0) {
@@ -56,25 +59,25 @@ class DashboardController extends Controller
             } else {
                 $prev = Carbon::parse($allDates[$i - 1]);
                 $curr = Carbon::parse($allDates[$i]);
-                if ($prev->copy()->addDay()->toDateString() === $curr->toDateString()) {
-                    $currentStreak++;
-                } else {
-                    $currentStreak = 1;
-                }
+                $currentStreak = $prev->copy()->addDay()->toDateString() === $curr->toDateString()
+                    ? $currentStreak + 1
+                    : 1;
             }
             if ($currentStreak > $longestStreak) {
                 $longestStreak = $currentStreak;
-                $streakEnd     = $allDates[$i];
             }
         }
 
-        // Current streak (streak ending today or yesterday)
+        // Active streak (streak ending today or yesterday)
         $activeStreak = 0;
         if (!empty($allDates)) {
             $lastDate  = Carbon::parse(end($allDates));
             $yesterday = $now->copy()->subDay()->toDateString();
 
-            if ($lastDate->toDateString() === $now->toDateString() || $lastDate->toDateString() === $yesterday) {
+            if (
+                $lastDate->toDateString() === $now->toDateString() ||
+                $lastDate->toDateString() === $yesterday
+            ) {
                 $activeStreak = 1;
                 for ($i = count($allDates) - 2; $i >= 0; $i--) {
                     $curr = Carbon::parse($allDates[$i + 1]);
@@ -88,7 +91,7 @@ class DashboardController extends Controller
             }
         }
 
-        // ── Monthly breakdown for the current year ───────────────────
+        // ── Monthly breakdown for current year ────────────────────────────
         $monthlyBreakdown = Journal::where('user_id', $userId)
             ->whereBetween('journal_date', [$startOfYear, $now])
             ->selectRaw('MONTH(journal_date) as month, COUNT(*) as count')
@@ -106,7 +109,7 @@ class DashboardController extends Controller
             ];
         }
 
-        // ── Calendar: dates that have entries (last 3 months + next month) ──
+        // ── Calendar: entry dates (last 3 months + next month) ───────────
         $calendarFrom = $now->copy()->subMonths(2)->startOfMonth();
         $calendarTo   = $now->copy()->addMonth()->endOfMonth();
 
@@ -117,23 +120,21 @@ class DashboardController extends Controller
             ->unique()
             ->values();
 
-        // ── Recent journals (last 5) ──────────────────────────────────
+        // ── Recent journals ───────────────────────────────────────────────
         $recentJournals = Journal::where('user_id', $userId)
             ->orderBy('journal_date', 'desc')
             ->limit(5)
             ->get(['id', 'title', 'journal_date', 'image_url']);
 
-        // ── Images uploaded ───────────────────────────────────────────
-
         return response()->json([
             'stats' => [
-                'total'         => $counts->total,
-                'this_week'     => $counts->this_week,
-                'this_month'    => $counts->this_month,
-                'this_year'     => $counts->this_year,
-                'active_streak' => $activeStreak,
-                'longest_streak'=> $longestStreak,
-                'with_images'   => $counts->with_images,
+                'total'          => (int) $counts->total,
+                'this_week'      => (int) $counts->this_week,
+                'this_month'     => (int) $counts->this_month,
+                'this_year'      => (int) $counts->this_year,
+                'active_streak'  => $activeStreak,
+                'longest_streak' => $longestStreak,
+                'with_images'    => (int) $counts->with_images,
             ],
             'monthly_breakdown' => $monthlyData,
             'journal_dates'     => $journalDates,

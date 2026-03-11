@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->text('content');
+            $table->longText('content');
             $table->string('image_url')->nullable();
             $table->string('cloudinary_public_id')->nullable();
             $table->date('journal_date');

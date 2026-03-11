@@ -34,7 +34,9 @@ function JournalFormModal({ onSuccess, onClose, existingJournal = null }) {
     const [formData, setFormData] = useState({
         title:        existingJournal?.title        || '',
         content:      existingJournal?.content      || '',
-        journal_date: existingJournal?.journal_date || new Date().toISOString().split('T')[0],
+        journal_date: existingJournal?.journal_date
+            ? existingJournal.journal_date.toString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
         image:        null,
     });
     const [errors, setErrors]             = useState({});
