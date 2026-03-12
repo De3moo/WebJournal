@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\PurifierHelper;
 use App\Services\SupabaseStorageService;
 
 class JournalController extends Controller
@@ -28,7 +29,7 @@ class JournalController extends Controller
             ->journals()
             ->select(['id', 'title', 'journal_date', 'image_url', 'content'])
             ->orderBy('journal_date', 'desc')
-            ->paginate(5);
+            ->paginate(3);
 
         return response()->json($journals);
     }
@@ -50,6 +51,7 @@ class JournalController extends Controller
         }
 
         $data = $request->only(['title', 'content', 'journal_date']);
+        $data['content'] = PurifierHelper::clean($data['content']);
         $data['user_id'] = $request->user()->id;
 
         if ($request->hasFile('image')) {
@@ -108,6 +110,10 @@ class JournalController extends Controller
         }
 
         $data = $request->only(['title', 'content', 'journal_date']);
+
+        if (isset($data['content'])) {
+            $data['content'] = PurifierHelper::clean($data['content']);
+        }
 
         if ($request->hasFile('image')) {
             try {

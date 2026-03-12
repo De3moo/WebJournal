@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import '../../syles/form.css';
+import '../../styles/form.css';
 import authService from "../../services/authService.js";
 
 function LoginForm({ onLoginSuccess, onGoToRegister }) {

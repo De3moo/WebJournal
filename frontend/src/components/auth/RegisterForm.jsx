@@ -1,6 +1,26 @@
 import { useState } from 'react';
 import authService from '../../services/authService';
-import '../../syles/form.css';
+import '../../styles/form.css';
+
+const PASSWORD_REQUIREMENTS = [
+    { key: 'length',  label: 'At least 8 characters',           test: (p) => p.length >= 8 },
+    { key: 'upper',   label: 'One uppercase letter (A–Z)',       test: (p) => /[A-Z]/.test(p) },
+    { key: 'lower',   label: 'One lowercase letter (a–z)',       test: (p) => /[a-z]/.test(p) },
+    { key: 'number',  label: 'One number (0–9)',                 test: (p) => /[0-9]/.test(p) },
+    { key: 'special', label: 'One special character (!@#$ …)',   test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
+function getStrength(password) {
+    if (!password) return 0;
+    const passed = PASSWORD_REQUIREMENTS.filter(r => r.test(password)).length;
+    if (passed <= 1) return 1;
+    if (passed === 2) return 2;
+    if (passed === 3) return 3;
+    return 4;
+}
+
 function RegisterForm({ onRegisterSuccess, onGoToLogin }) {
     const [formData, setFormData] = useState({
         name: '',
@@ -10,6 +30,9 @@ function RegisterForm({ onRegisterSuccess, onGoToLogin }) {
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [passwordTouched, setPasswordTouched] = useState(false);
+
+    const strength = getStrength(formData.password);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -68,9 +91,43 @@ function RegisterForm({ onRegisterSuccess, onGoToLogin }) {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
+                        onFocus={() => setPasswordTouched(true)}
                         required
                     />
                     {errors.password && <span className="field-error">{errors.password[0]}</span>}
+
+                    {passwordTouched && (
+                        <div className="password-strength">
+                            <div className="strength-bar-track">
+                                <div
+                                    className="strength-bar-fill"
+                                    data-strength={formData.password ? strength : 0}
+                                />
+                            </div>
+                            {formData.password && (
+                                <span
+                                    className="strength-label"
+                                    data-strength={strength}
+                                >
+                                    {STRENGTH_LABELS[strength]}
+                                </span>
+                            )}
+                            <ul className="password-requirements">
+                                {PASSWORD_REQUIREMENTS.map(req => {
+                                    const met = req.test(formData.password);
+                                    const attempted = formData.password.length > 0;
+                                    return (
+                                        <li
+                                            key={req.key}
+                                            className={attempted ? (met ? 'met' : 'unmet') : ''}
+                                        >
+                                            {req.label}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 <div className="form-group">
@@ -82,6 +139,10 @@ function RegisterForm({ onRegisterSuccess, onGoToLogin }) {
                         onChange={handleChange}
                         required
                     />
+                    {formData.password_confirmation &&
+                        formData.password !== formData.password_confirmation && (
+                            <span className="field-error">Passwords do not match</span>
+                        )}
                 </div>
 
                 <button className="btn" type="submit" disabled={loading}>
