@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\SupabaseStorageService;
+use App\Helpers\PurifierHelper;
 
 class JournalController extends Controller
 {
@@ -52,7 +53,7 @@ class JournalController extends Controller
             ->journals()
             ->select(['id', 'title', 'journal_date', 'image_url', 'content'])
             ->orderBy('journal_date', 'desc')
-            ->paginate(5);
+            ->paginate(3);
 
         return response()->json($journals);
     }
@@ -81,7 +82,7 @@ class JournalController extends Controller
 
         $data = [
             'title'        => strip_tags(trim($request->title)),
-            'content' => (string) $request->input('content', ''),
+            'content' => PurifierHelper::clean((string) $request->input('content', '')),
             'journal_date' => $request->journal_date,
             'user_id'      => $request->user()->id,
         ];
@@ -152,7 +153,7 @@ class JournalController extends Controller
 
         $data = array_filter([
             'title'        => $request->has('title')        ? strip_tags(trim($request->title)) : null,
-            'content' => $request->has('content') ? (string) $request->input('content', '') : null,
+            'content' => $request->has('content') ? PurifierHelper::clean((string) $request->input('content', '')) : null,
             'journal_date' => $request->has('journal_date') && $request->journal_date
                 ? $request->journal_date
                 : $journal->journal_date->toDateString(),
