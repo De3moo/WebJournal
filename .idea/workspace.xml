@@ -29,6 +29,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main-backup" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/backend" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -48,7 +53,7 @@
     <setting file="file://$PROJECT_DIR$/frontend/node_modules/vite/client.d.ts" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/frontend/node_modules/vite/types/importMeta.d.ts" root0="SKIP_INSPECTION" />
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../../xampp/php/php.exe">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\xampp\php\php.exe">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/ezyang/htmlpurifier" />
       <path value="$PROJECT_DIR$/vendor/composer" />
@@ -178,12 +183,14 @@
       <path value="$PROJECT_DIR$/backend/vendor/dompdf/dompdf" />
       <path value="$PROJECT_DIR$/backend/vendor/sabberworm/php-css-parser" />
       <path value="$PROJECT_DIR$/backend/vendor/dompdf/php-svg-lib" />
+      <path value="$PROJECT_DIR$/backend/vendor/ezyang/htmlpurifier" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="39k0QPnxnSvkIapWUTefY1xRU2i" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
